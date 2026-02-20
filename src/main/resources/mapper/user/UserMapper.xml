@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.afivestudio.anipia.user.infra.UserMapper">
+
+  <resultMap id="UserResultMap" type="User" autoMapping="true">
+    <id property="id" column="user_id"/>
+    <association property="profile" javaType="Profile">
+      <constructor>
+        <arg column="profile_image_path" javaType="String" name="imagePath"/>
+        <arg column="nickname" javaType="String" name="nickname"/>
+      </constructor>
+    </association>
+  </resultMap>
+
+  <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO users (
+    email,
+    nickname,
+    profile_image_path,
+    role,
+    password,
+    email_verified,
+    created_at,
+    updated_at,
+    deleted_at
+    ) VALUES (
+    #{email},
+    #{profile.nickname},
+    #{profile.imagePath},
+    #{role},
+    #{password},
+    #{emailVerified},
+    NOW(),
+    NOW(),
+    NULL
+    )
+  </insert>
+
+  <update id="update">
+    UPDATE users
+    SET
+    email = #{email},
+    nickname = #{profile.nickname},
+    profile_image_path = #{profile.imagePath},
+    role = #{role},
+    password = #{password},
+    email_verified = #{emailVerified},
+    updated_at = NOW(),
+    deleted_at = #{deletedAt}
+    WHERE user_id = #{id}
+  </update>
+
+  <select id="findById" resultMap="UserResultMap">
+    SELECT * FROM users WHERE user_id = #{id}
+  </select>
+
+  <select id="findByEmail" resultMap="UserResultMap">
+    SELECT * FROM users WHERE email = #{email}
+  </select>
+
+  <select id="existsByNickname" resultType="boolean">
+    SELECT EXISTS(
+    SELECT 1
+    FROM users
+    WHERE nickname = #{nickname}
+    )
+  </select>
+</mapper>

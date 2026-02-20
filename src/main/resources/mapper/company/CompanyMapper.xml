@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.afivestudio.anipia.company.infra.CompanyMapper">
+
+    <resultMap id="CompanyResultMap" type="Company" autoMapping="true">
+        <id property="id" column="company_id"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into companies(name)
+        values (#{name})
+    </insert>
+
+    <update id="update">
+        update companies
+        set name = #{name}
+        where company_id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        delete
+        from companies
+        where company_id = #{id}
+    </delete>
+
+    <select id="findById" resultMap="CompanyResultMap">
+        select *
+        from companies
+        where company_id = #{id}
+    </select>
+
+    <select id="findByText" resultMap="CompanyResultMap">
+        select *
+        from companies
+        where name = #{name}
+    </select>
+</mapper>

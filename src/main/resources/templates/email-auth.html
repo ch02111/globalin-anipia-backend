@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>メールアドレスの認証</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+<div style="max-width: 600px; padding: 20px;">
+  <h2>メールアドレスの認証</h2>
+  <p>ANIPIAにご登録いただき、ありがとうございます！</p>
+  <br>
+  <p>
+    会員登録を完了するには、以下のボタンをクリックして<br>
+    メールアドレスの認証を行ってください。
+  </p>
+  <p style="margin: 30px 0;">
+    <a th:href="${link}"
+       style="display: inline-block; padding: 12px 24px; background-color: #007bff; color: #ffffff; text-decoration: none; border-radius: 4px;">
+      メールアドレスを認証する
+    </a>
+  </p>
+
+  <p style="margin-top: 30px; color: #666; font-size: 14px;">
+    ※ このリンクの有効期限は5分間です。<br>
+    ※ お心当たりがない場合は、本メールを破棄してください。
+  </p>
+</div>
+</body>
+</html>

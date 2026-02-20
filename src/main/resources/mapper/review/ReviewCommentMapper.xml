@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.afivestudio.anipia.review.infra.ReviewCommentMapper">
+
+    <insert id="save">
+        INSERT INTO review_comments (review_id, user_id, content, created_at)
+        VALUES (#{reviewId}, #{userId}, #{content}, NOW())
+    </insert>
+
+    <select id="findAllByReviewId" resultType="com.afivestudio.anipia.review.query.dto.ReviewCommentResDto">
+        SELECT
+        c.comment_id,
+        c.review_id,
+        c.content,
+        c.created_at,
+        u.user_id,
+        u.nickname,
+        u.profile_image_path as profileImagePath
+        FROM review_comments c
+        JOIN users u ON c.user_id = u.user_id
+        WHERE c.review_id = #{reviewId}
+        AND c.deleted_at IS NULL
+        ORDER BY c.created_at ASC
+    </select>
+
+    <update id="update">
+        UPDATE review_comments
+        SET content = #{content}, updated_at = NOW()
+        WHERE comment_id = #{commentId}
+    </update>
+
+    <update id="delete">
+        UPDATE review_comments
+        SET deleted_at = NOW()
+        WHERE comment_id = #{commentId}
+    </update>
+
+    <select id="findUserIdByCommentId" resultType="long">
+        SELECT user_id FROM review_comments WHERE comment_id = #{commentId}
+    </select>
+
+</mapper>

@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.afivestudio.anipia.user.query.UserQueryMapper">
+
+  <sql id="searchCriteria">
+    <where>
+      <choose>
+        <when test="cond.isDeleted != null and cond.isDeleted == true">
+          AND deleted_at IS NOT NULL
+        </when>
+        <when test="cond.isDeleted != null and cond.isDeleted == false">
+          AND deleted_at IS NULL
+        </when>
+        <otherwise>
+        </otherwise>
+      </choose>
+
+      <if test="cond.email != null and cond.email != ''">
+        AND email LIKE CONCAT('%', #{cond.email}, '%')
+      </if>
+
+      <if test="cond.nickname != null and cond.nickname != ''">
+        AND nickname LIKE CONCAT('%', #{cond.nickname}, '%')
+      </if>
+
+      <if test="cond.role != null">
+        AND role = #{cond.role}
+      </if>
+
+      <if test="cond.emailVerified != null">
+        AND email_verified = #{cond.emailVerified}
+      </if>
+    </where>
+  </sql>
+
+  <select id="search" resultType="UserDto">
+    SELECT
+    user_id, email, nickname, profile_image_path, role,
+    email_verified,
+    created_at, updated_at, deleted_at
+    FROM users
+    <include refid="searchCriteria"/>
+    <choose>
+      <when test="pageable.sort.sorted">
+        ORDER BY
+        <foreach collection="pageable.sort" item="order" separator=",">
+          <choose>
+            <when test="order.property == 'userId'">user_id</when>
+            <when test="order.property == 'email'">email</when>
+            <when test="order.property == 'nickname'">nickname</when>
+            <when test="order.property == 'updatedAt'">updated_at</when>
+            <otherwise>user_id</otherwise>
+          </choose>
+          ${order.direction}
+        </foreach>
+      </when>
+      <otherwise>
+        ORDER BY user_id DESC
+      </otherwise>
+    </choose>
+    LIMIT #{pageable.pageSize} OFFSET #{pageable.offset}
+  </select>
+
+  <select id="count" resultType="long">
+    SELECT COUNT(*) FROM users
+    <include refid="searchCriteria"/>
+  </select>
+
+  <select id="existsByEmail" resultType="boolean">
+    SELECT EXISTS(SELECT 1 FROM users WHERE email = #{email})
+  </select>
+
+  <select id="existsByNickname" resultType="boolean">
+    SELECT EXISTS(SELECT 1 FROM users WHERE nickname = #{nickname})
+  </select>
+
+  <select id="searchReviews" resultType="UserReviewDto">
+    SELECT
+    r.review_id,
+    r.user_id,
+    r.animation_id,
+    a.title,
+    r.content,
+    r.rating,
+    r.is_spoiler,
+    r.like_count,
+    r.report_count,
+    r.is_hidden,
+    r.created_at,
+    r.updated_at
+    FROM reviews r
+    JOIN animations a ON r.animation_id = a.animation_id
+    WHERE r.user_id = #{userId}
+    AND r.deleted_at IS NULL
+    <choose>
+      <when test="pageable.sort.sorted">
+        ORDER BY
+        <foreach collection="pageable.sort" item="order" separator=",">
+          <choose>
+            <when test="order.property == 'reviewId'">r.review_id</when>
+            <when test="order.property == 'likeCount'">r.like_count</when>
+            <when test="order.property == 'updatedAt'">r.updated_at</when>
+            <otherwise>r.review_id</otherwise>
+          </choose>
+          ${order.direction}
+        </foreach>
+      </when>
+      <otherwise>
+        ORDER BY r.review_id DESC
+      </otherwise>
+    </choose>
+    LIMIT #{pageable.pageSize} OFFSET #{pageable.offset}
+  </select>
+
+  <select id="countReviews">
+    SELECT COUNT(*)
+    FROM reviews
+    WHERE user_id = #{userId}
+    AND deleted_at IS NULL
+  </select>
+
+  <select id="searchLikes" resultType="UserReviewDto">
+    SELECT
+    r.review_id,
+    r.user_id,
+    r.animation_id,
+    a.title,
+    r.content,
+    r.rating,
+    r.is_spoiler,
+    r.like_count,
+    r.report_count,
+    r.is_hidden,
+    r.created_at,
+    r.updated_at
+    FROM review_likes rl
+    JOIN reviews r ON rl.review_id = r.review_id
+    JOIN animations a ON r.animation_id = a.animation_id
+    WHERE rl.user_id = #{userId}
+    AND r.deleted_at IS NULL
+    <choose>
+      <when test="pageable.sort.sorted">
+        ORDER BY
+        <foreach collection="pageable.sort" item="order" separator=",">
+          <choose>
+            <when test="order.property == 'reviewCreatedAt'">r.review_id</when>
+            <when test="order.property == 'reviewLikeCount'">r.like_count</when>
+            <when test="order.property == 'reviewUpdatedAt'">r.updated_at</when>
+            <when test="order.property == 'likedAt'">rl.review_like_id</when>
+            <otherwise>rl.review_like_id</otherwise>
+          </choose>
+          ${order.direction}
+        </foreach>
+      </when>
+      <otherwise>
+        ORDER BY rl.review_like_id DESC
+      </otherwise>
+    </choose>
+    LIMIT #{pageable.pageSize} OFFSET #{pageable.offset}
+  </select>
+
+  <select id="countLikes">
+    SELECT COUNT(*)
+    FROM review_likes rl
+    JOIN reviews r ON rl.review_id = r.review_id
+    WHERE rl.user_id = #{userId}
+    AND r.deleted_at IS NULL
+  </select>
+
+  <select id="searchBookmarks">
+    SELECT
+    a.animation_id,
+    a.image_path AS thumbnail_image_path,
+    a.title,
+    ROUND(CASE WHEN a.review_count > 0 THEN a.rating_sum / a.review_count ELSE 0 END, 1) as rating
+    FROM bookmarks b
+    JOIN animations a ON b.animation_id = a.animation_id
+    WHERE b.user_id = #{userId}
+    <choose>
+      <when test="pageable.sort.sorted">
+        ORDER BY
+        <foreach collection="pageable.sort" item="order" separator=",">
+          <choose>
+            <when test="order.property == 'rating'">
+              ROUND(CASE WHEN a.review_count > 0 THEN a.rating_sum / a.review_count ELSE 0 END, 1)
+            </when>
+            <when test="order.property == 'bookmarkedAt'">b.bookmark_id</when>
+            <otherwise>b.bookmark_id</otherwise>
+          </choose>
+          ${order.direction}
+        </foreach>
+      </when>
+      <otherwise>
+        ORDER BY b.bookmark_id DESC
+      </otherwise>
+    </choose>
+    LIMIT #{pageable.pageSize} OFFSET #{pageable.offset}
+  </select>
+
+  <select id="countBookmarks">
+    SELECT COUNT(*)
+    FROM bookmarks
+    WHERE user_id = #{userId}
+  </select>
+
+  <select id="findOneById" resultType="UserDto">
+    SELECT
+    user_id, email, nickname, profile_image_path, role,
+    email_verified, created_at, updated_at, deleted_at
+    FROM users WHERE user_id = #{userId};
+  </select>
+</mapper>

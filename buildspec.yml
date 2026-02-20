@@ -1,0 +1,35 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      - echo Checking Java version...
+      - java -version
+
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building the Jar file...
+      - chmod +x ./gradlew
+      - ./gradlew clean build -x test  # 테스트 건너뛰고 빌드 (배포 우선)
+
+      - echo Building the Docker image...
+      - docker build -t $IMAGE_REPO_NAME .
+      - docker tag $IMAGE_REPO_NAME:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
+
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker image...
+      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
+
+      - echo Writing image definitions file...
+      # [중요] imagedefinitions.json을 만듭니다. (ECS 배포용)
+      # "anipia-container"는 ecs.tf 파일의 container_definitions 이름과 똑같아야 합니다!
+      - printf '[{"name":"anipia-container","imageUri":"%s"}]' $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest > imagedefinitions.json
+
+artifacts:
+  files:
+    - imagedefinitions.json

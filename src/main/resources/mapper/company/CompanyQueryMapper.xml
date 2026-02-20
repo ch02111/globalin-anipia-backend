@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.afivestudio.anipia.company.query.CompanyQueryMapper">
+
+    <sql id="searchCriteria">
+        <where>
+            <if test="condition.name != null and condition.name != ''">
+                AND name LIKE CONCAT('%', #{condition.name}, '%')
+            </if>
+        </where>
+    </sql>
+
+    <select id="search" resultType="CompanyDto">
+        SELECT
+        company_id, name
+        FROM companies
+        <include refid="searchCriteria"/>
+        <choose>
+            <when test="pageable.sort.sorted">
+                ORDER BY
+                <foreach collection="pageable.sort" item="order" separator=",">
+                    <choose>
+                        <when test="order.property == 'companyId'">company_id</when>
+                        <when test="order.property == 'name'">name</when>
+                        <otherwise>company_id</otherwise>
+                    </choose>
+                    ${order.direction}
+                </foreach>
+            </when>
+            <otherwise>
+                ORDER BY company_id DESC
+            </otherwise>
+        </choose>
+        LIMIT #{pageable.pageSize} OFFSET #{pageable.offset}
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(*) FROM companies
+        <include refid="searchCriteria"/>
+    </select>
+</mapper>

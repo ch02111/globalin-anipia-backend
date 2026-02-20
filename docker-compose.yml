@@ -1,0 +1,52 @@
+services:
+  # mariadb
+  db:
+    image: mariadb:lts
+    container_name: mariadb
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      - MARIADB_ROOT_PASSWORD=1234
+      - MARIADB_DATABASE=anipia
+    volumes:
+      - maria_data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: "2"  # 최대 2개의 코어 할당
+          memory: 1GB   # 최대 1GB 메모리 할당
+
+  # database management tool
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "9000:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Redis
+  redis:
+    image: redis:8.2
+    container_name: redis-server
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+
+volumes:
+  maria_data:
+  redis_data:

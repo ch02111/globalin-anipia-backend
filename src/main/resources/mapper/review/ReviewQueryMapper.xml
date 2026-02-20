@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.afivestudio.anipia.review.query.ReviewQueryMapper">
+
+    <select id="findAllByAnimationId" resultType="com.afivestudio.anipia.review.query.dto.ReviewResDto">
+        SELECT
+        r.review_id,
+        CASE
+        WHEN r.is_hidden = 1 THEN '신고 누적으로 블라인드 처리된 리뷰입니다.'
+        ELSE r.content
+        END as content,
+        r.rating,
+        r.like_count,
+        r.is_spoiler,
+        r.is_hidden,
+        r.created_at,
+        u.user_id,
+        u.nickname,
+        u.profile_image_path as profileImagePath
+        FROM reviews r
+        JOIN users u ON r.user_id = u.user_id
+        WHERE r.animation_id = #{animationId}
+        AND r.deleted_at IS NULL
+
+        <choose>
+            <when test="pageable.sort.sorted">
+                ORDER BY
+                <foreach collection="pageable.sort" item="order" separator=",">
+                    <choose>
+                        <when test="order.property == 'rating'">r.rating</when>
+                        <when test="order.property == 'likeCount'">r.like_count</when>
+                        <when test="order.property == 'createdAt'">r.created_at</when>
+                        <otherwise>r.created_at</otherwise>
+                    </choose>
+                    ${order.direction}
+                </foreach>
+            </when>
+            <otherwise>
+                ORDER BY r.created_at DESC
+            </otherwise>
+        </choose>
+
+        LIMIT #{pageable.pageSize} OFFSET #{pageable.offset}
+    </select>
+
+    <select id="countByAnimationId" resultType="long">
+        SELECT COUNT(*)
+        FROM reviews
+        WHERE animation_id = #{animationId}
+        AND deleted_at IS NULL
+    </select>
+
+    <select id="findRecentReviews" resultType="com.afivestudio.anipia.review.query.dto.RecentReviewDto">
+        SELECT
+        r.review_id,
+        CASE
+        WHEN r.is_hidden = 1 THEN '신고 누적으로 블라인드 처리된 리뷰입니다.'
+        ELSE r.content
+        END as content,
+        r.rating,
+        r.created_at,
+        a.animation_id,
+        a.title AS animationTitle,
+        a.image_path AS animationImagePath
+        FROM reviews r
+        JOIN animations a ON r.animation_id = a.animation_id
+        WHERE r.deleted_at IS NULL
+        AND r.is_hidden = 0 ORDER BY r.created_at DESC
+        LIMIT #{limit}
+    </select>
+
+</mapper>

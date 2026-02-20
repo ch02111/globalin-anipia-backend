@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.afivestudio.anipia.tag.query.TagQueryMapper">
+
+    <sql id="searchCriteria">
+        <where>
+            <if test="condition.text != null and condition.text != ''">
+                AND text LIKE CONCAT('%', #{condition.text}, '%')
+            </if>
+        </where>
+    </sql>
+
+    <select id="search" resultType="TagDto">
+        SELECT
+        tag_id, text
+        FROM tags
+        <include refid="searchCriteria"/>
+        <choose>
+            <when test="pageable.sort.sorted">
+                ORDER BY
+                <foreach collection="pageable.sort" item="order" separator=",">
+                    <choose>
+                        <when test="order.property == 'tagId'">tag_id</when>
+                        <when test="order.property == 'text'">text</when>
+                        <otherwise>tag_id</otherwise>
+                    </choose>
+                    ${order.direction}
+                </foreach>
+            </when>
+            <otherwise>
+                ORDER BY tag_id DESC
+            </otherwise>
+        </choose>
+        LIMIT #{pageable.pageSize} OFFSET #{pageable.offset}
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(*) FROM tags
+        <include refid="searchCriteria"/>
+    </select>
+</mapper>

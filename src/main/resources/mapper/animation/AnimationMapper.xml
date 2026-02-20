@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.afivestudio.anipia.animation.infra.AnimationMapper">
+
+    <resultMap id="AnimationResultMap" type="com.afivestudio.anipia.animation.domain.Animation">
+        <id property="id" column="animation_id"/>
+        <result property="title" column="title"/>
+        <result property="thumbnailImagePath" column="image_path"/>
+        <result property="summary" column="summary"/>
+        <result property="releaseDate" column="release_date"/>
+        <result property="reviewCount" column="review_count"/>
+        <result property="bookmarkCount" column="bookmark_count"/>
+        <result property="ratingSum" column="rating_sum"/>
+
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO animations (company_id,
+                                title,
+                                image_path,
+                                summary,
+                                season,
+                                review_count,
+                                bookmark_count,
+                                rating_sum,
+                                release_date)
+        VALUES ((SELECT company_id FROM companies WHERE name = #{companyName} LIMIT 1), #{title}, #{thumbnailImagePath}, #{summary}, #{season}, #{reviewCount}, #{bookmarkCount}, #{ratingSum}, NOW()
+            )
+    </insert>
+
+    <update id="update">
+        UPDATE
+            animations
+        SET title      = #{title},
+            image_path = #{thumbnailImagePath},
+            summary    = #{summary},
+            season     = #{season}
+        WHERE animation_id = #{id}
+    </update>
+
+    <delete id="delete">
+        DELETE
+        FROM animations
+        WHERE animation_id = #{id}
+    </delete>
+
+    <select id="findById" resultMap="AnimationResultMap">
+        SELECT *
+        FROM animations
+        WHERE animation_id = #{id}
+    </select>
+
+    <update id="updateRating">
+        UPDATE animations
+        SET review_count = review_count + #{reviewCountDelta},
+            rating_sum   = rating_sum + #{ratingDelta}
+        WHERE animation_id = #{id}
+    </update>
+
+    <update id="updateBookmarkCount">
+        UPDATE animations
+        SET bookmark_count = bookmark_count + #{delta}
+        WHERE animation_id = #{id}
+    </update>
+
+
+</mapper>

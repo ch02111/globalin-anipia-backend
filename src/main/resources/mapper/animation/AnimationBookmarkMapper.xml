@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.afivestudio.anipia.animation.infra.AnimationBookmarkMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id" keyColumn="bookmark_id">
+        INSERT INTO bookmarks (user_id,
+                               animation_id,
+                               created_at)
+        VALUES (#{userId},
+                #{animationId},
+                #{createdAt})
+    </insert>
+
+
+    <delete id="delete">
+        DELETE
+        FROM bookmarks
+        WHERE bookmark_id = #{id}
+    </delete>
+
+    <select id="findByAnimationIdAndUserId" resultType="AnimationBookmark">
+        SELECT bookmark_id  AS id,
+               user_id      AS userId,
+               animation_id AS animationId,
+               created_at   AS createdAt
+        FROM bookmarks
+        WHERE animation_id = #{animationId}
+          AND user_id = #{userId}
+    </select>
+
+</mapper>
