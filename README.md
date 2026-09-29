@@ -1,49 +1,61 @@
-# Anipia バックエンドプロジェクト
+# 🎬 Anipia (애니피아) 백엔드 프로젝트
 
-Anipiaは、アニメーションの情報を閲覧し、レビューを作成して他のユーザーと共有できるサービスです。
+**Anipia**는 사용자들이 애니메이션 정보를 탐색하고, 자신만의 리뷰를 작성하여 다른 유저들과 공유할 수 있는 커뮤니티 서비스입니다. 
+본 백엔드 시스템은 대량의 데이터 조회 최적화와 안정적인 서버 운영, 그리고 **개발 생산성 향상을 위한 CI/CD 배포 자동화**에 중점을 두고 개발되었습니다.
 
-## ✨ 主な機能
+👉 **[프론트엔드 레포지토리 보러가기](github.com/ch02111/globalin-anipia-frontend)**
 
--   **ユーザー認証:** JWTを利用したログイン機能
--   **アニメーション:** アニメーション情報の照会、検索、フィルタリング機能
--   **レビュー:** アニメーションに対するレビューの作成、照会、修正、削除機能
--   **タグ:** タグに基づいたアニメーション照会機能
+<br/>
 
-## 🛠️ 技術スタック
+## ✨ 주요 기능
+- **사용자 인증:** JWT를 활용한 안전한 로그인 및 세션 관리
+- **애니메이션 탐색:** 다양한 기준의 애니메이션 정보 조회, 검색 및 필터링 기능
+- **리뷰 커뮤니티:** 애니메이션에 대한 리뷰 작성, 조회, 수정, 삭제(CRUD) 기능
+- **태그 분류:** 태그를 기반으로 한 직관적인 애니메이션 큐레이션 및 조회 기능
 
--   **Backend:** Java 17, Spring Boot, Spring Security, MyBatis
--   **Database:** MariaDB, Redis
--   **Deployment:** Docker, AWS (S3, ECS Fargate, ECR)
--   **CI/CD:** GitHub Actions, AWS CodePipeline
+<br/>
 
-## 🚀 利用開始ガイド
+## 🛠️ 기술 스택
+- **Backend:** Java 17, Spring Boot, Spring Security, MyBatis
+- **Database:** MariaDB, Redis
+- **Deployment:** Docker, AWS (S3, ECS Fargate, ECR)
+- **CI/CD:** GitHub Actions, AWS CodePipeline
 
-ローカル環境でプロジェクトをセットアップし、実行する方法です。
+<br/>
 
-### 1. 前提条件
+## ⚙️ CI/CD 파이프라인 (자동화 아키텍처)
+수동 배포로 인한 시간 지연과 비효율을 해결하기 위해 **Github Actions를 활용한 CI/CD 파이프라인을 구축**했습니다.
+- **CI (지속적 통합):** Github Repository에 코드가 Push/Merge 되면 Github Actions가 즉시 작동하여 자동 빌드 및 테스트를 수행합니다.
+- **CD (지속적 배포):** 빌드가 완료된 코드는 팀의 AWS 인프라 환경으로 자동 배포되어, 개발 팀원이 인프라 관리에 신경 쓰지 않고 핵심 비즈니스 로직(Spring Boot) 개발에만 집중할 수 있는 효율적인 프로세스를 확립했습니다.
 
--   Java 17
--   Docker Desktop (Docker Compose を含む)
+<br/>
 
-### 2. インストール及び実行
+## 🚀 시작 가이드 (Local Setup)
+로컬 환경에서 프로젝트를 설정하고 실행하는 방법입니다.
 
-本プロジェクトは、Docker Composeを利用してデータベース（MariaDB, Redis）コンテナを起動し、その後Spring Bootアプリケーションを実行する方式を推奨しています。
+### 1. 전제 조건
+- Java 17
+- Docker Desktop (Docker Compose 포함)
+
+### 2. 설치 및 실행
+본 프로젝트는 Docker Compose를 이용해 데이터베이스(MariaDB, Redis) 컨테이너를 먼저 띄운 후, Spring Boot 애플리케이션을 실행하는 방식을 권장합니다.
 
 ```bash
-# 1. データベースとRedisをコンテナで起動します
+# 1. DB 및 Redis 컨테이너를 백그라운드에서 실행합니다.
 docker-compose up -d
 
-# 2. Spring Boot アプリケーションを実行します (IDEで直接実行、または以下のコマンドを利用)
+# 2. Spring Boot 애플리케이션을 실행합니다. (IDE 직접 실행 또는 아래 명령어 사용)
 ./gradlew bootRun
 ```
 
-### 3. 設定
+<br/>
 
-#### ⚠️ **重要：設定ファイルに関する注意**
+## ⚠️ 중요: 환경 설정 파일(Security) 안내
+보안상의 이유로(DB 접속 정보, JWT 시크릿 키, AWS 자격 증명 등) `application.yaml` 및 관련 설정 파일은 `.gitignore` 처리가 되어 리포지토리에 업로드되지 않았습니다. 
+프로젝트를 정상적으로 실행하려면 `src/main/resources/` 경로에 `application.yaml` 파일을 직접 생성하고, 아래의 템플릿을 참고하여 본인의 환경에 맞게 값을 입력해야 합니다.
 
-セキュリティ上の理由（データベースの認証情報、JWTシークレットキーなど）により、`application.yaml`及び関連ファイルは`.gitignore`に含まれており、リポジトリで管理されていません。このプロジェクトは公開リポジトリであるため、機密情報が漏洩しないようにするための措置です。
-
-プロジェクトを正常に実行するには、`src/main/resources/`ディレクトリに独自の設定ファイルを作成する必要があります。例えば、`application.yaml`という名前でファイルを作成し、以下の内容を参考にしてください。
+<details>
+<summary><b>application.yaml 템플릿 보기 (클릭)</b></summary>
 
 ```yaml
 # src/main/resources/application.yaml
@@ -57,8 +69,8 @@ spring:
   cloud:
     aws:
       credentials:
-        access-key: # AWS IAMアクセスキー
-        secret-key: # AWS IAMシークレットキー
+        access-key: # AWS IAM 액세스 키
+        secret-key: # AWS IAM 시크릿 키
       region:
         static: ap-northeast-2
       stack:
@@ -69,8 +81,8 @@ spring:
       max-request-size: 10MB
   datasource:
     url: jdbc:mariadb://localhost:3306/anipia
-    username: root # docker-compose.ymlで設定したユーザー名
-    password: 1234 # docker-compose.ymlで設定したパスワード
+    username: root # docker-compose.yml에 설정된 DB 계정
+    password: 1234 # docker-compose.yml에 설정된 DB 비밀번호
     driver-class-name: org.mariadb.jdbc.Driver
   data:
     redis:
@@ -79,8 +91,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: # ご自身のGmailアドレス
-    password: # Gmailアプリのパスワード
+    username: # 본인 Gmail 주소
+    password: # Gmail 앱 비밀번호
     properties:
       mail:
         smtp:
@@ -156,7 +168,7 @@ security:
     - pattern: /swagger-resources/**
 
   jwt:
-    secret-key: # 独自のJWTシークレットキーを入力してください
+    secret-key: # 자체 생성한 JWT 시크릿 키 입력
     access-token-expiration: 3h
     refresh-token-expiration: 30d
 
@@ -170,16 +182,20 @@ app:
     password-token-expiration: 5m
   file:
     s3:
-      bucket: # AWS S3バケット名
+      bucket: # AWS S3 버킷 이름
 ```
+</details>
 
-## 🗄️ データベーススキーマ
+<br/>
 
-プロジェクトの初期化に必要なデータベーススキーマは `init.sql` ファイルに含まれています。以下は、このプロジェクトのERDです。
+## 🗄️ 데이터베이스 스키마
+프로젝트 초기화에 필요한 데이터베이스 스키마는 `init.sql` 파일에 포함되어 있습니다. 아래는 본 프로젝트의 ERD(Entity Relationship Diagram) 구조입니다.
 
 ![Anipia ERD](anipia_erd.png)
 
-## 📄 APIエンドポイント
+<br/>
 
-主要なAPIエンドポイントの詳細は、Swagger UIで確認できます。
-アプリケーション実行後、 `http://localhost:8080/swagger-ui/index.html` にアクセスしてください。
+## 📄 API 엔드포인트 명세
+주요 API 엔드포인트의 세부 규격과 테스트는 Swagger UI를 통해 확인할 수 있습니다.
+애플리케이션을 정상적으로 실행한 뒤, 아래 주소로 접속해 주세요.
+- `http://localhost:8080/swagger-ui/index.html`
